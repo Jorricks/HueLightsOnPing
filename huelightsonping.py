@@ -1,4 +1,3 @@
-import pprint
 import time
 import os
 import subprocess
@@ -24,10 +23,12 @@ conf_interval_seconds = 3  # How many seconds should be in between pings.
 conf_listen_host = '192.168.1.1'  # What ip should be listened too. 0.0.0.0 for open, localhost for local.
 conf_listen_port = '1234'  # what port should be listened too.
 conf_enable_api = True  # Do you want to enable the web components.
+conf_i_want_all_info = False  # This will print stuff that is 100% useless for the normal user xD
 
 
 class HueLightsStateMachine:
-    def __init__(self, begin_state, ip_to_check, bridge_ip, interval_seconds, listen_host, listen_port, enable_api):
+    def __init__(self, begin_state, ip_to_check, bridge_ip, interval_seconds, listen_host, listen_port, enable_api,
+                 conf_i_want_all_info):
         self.state = begin_state
         self.ip_to_check = ip_to_check
         self.interval_seconds = interval_seconds
@@ -37,7 +38,9 @@ class HueLightsStateMachine:
         try:
             self.bridge = Bridge(bridge_ip)
             self.bridge.connect()
-            pprint.pprint(self.bridge.get_api())
+            if conf_i_want_all_info:
+                import pprint
+                pprint.pprint(self.bridge.get_api())
             print('Connection to bridge successful')
         except phue.PhueRegistrationException:
             print('You did not press the bridge button in the last 30 seconds. Please retry.')
@@ -140,7 +143,8 @@ hlm = HueLightsStateMachine(
     conf_interval_seconds,
     conf_listen_host,
     conf_listen_port,
-    conf_enable_api
+    conf_enable_api,
+    conf_i_want_all_info
 )
 
 hlm.run()
