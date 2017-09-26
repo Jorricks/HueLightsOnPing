@@ -1,6 +1,6 @@
 # Hue lights on ping
-Simple state program that has the option to stay on, turn on/of based on
-ping results or stay off.
+Simple state program that has the option to keep your lights on or off or turn them on/off based on
+the result of a ping to a specific IP.
 
 ## Installation
 
