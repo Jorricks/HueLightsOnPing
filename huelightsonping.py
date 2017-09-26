@@ -114,20 +114,21 @@ class HueLightsStateMachine:
     def execute_ping(self):
         with open(os.devnull, 'w') as DEVNULL:
             try:
-                param1 = "-n 1" if system_name().lower() == "windows" else "-c 1"
-                subprocess.check_call(
-                    ['ping', param1, '1', self.ip_to_check],
-                    stdout=DEVNULL,  # suppress output
-                    stderr=DEVNULL
-                )
+                if system_name().lower() == "windows":
+                    subprocess.check_call(
+                        ['ping', '-n', '1', self.ip_to_check],
+                        stdout=DEVNULL,  # suppress output
+                        stderr=DEVNULL
+                    )
+                else:
+                    subprocess.check_call(
+                        ['timeout', '0.5', 'ping', '-c', '1', self.ip_to_check],
+                        stdout=DEVNULL,  # suppress output
+                        stderr=DEVNULL
+                    )
                 return True
             except subprocess.CalledProcessError:
                 return False
-        #
-        # # Ping parameters as function of OS
-        # parameters = "-n 1" if system_name().lower() == "windows" else "-c 1"
-        # # Pinging
-        # return system_call("ping " + parameters + " " + self.ip_to_check) == 0
 
     def turn_on_lights(self):
         # Turn on the lights.
