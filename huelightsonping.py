@@ -24,21 +24,23 @@ conf_listen_host = '192.168.1.1'  # What ip should be listened too. 0.0.0.0 for 
 conf_listen_port = '1234'  # what port should be listened too.
 conf_enable_api = True  # Do you want to enable the web components.
 conf_i_want_all_info = False  # This will print stuff that is 100% useless for the normal user xD
+conf_persistent = True  # Whether the lights should be send an of or on signal every time.
 
 
 class HueLightsStateMachine:
     def __init__(self, begin_state, ip_to_check, bridge_ip, interval_seconds, listen_host, listen_port, enable_api,
-                 conf_i_want_all_info):
+                 i_want_all_info, persistent):
         self.state = begin_state
         self.ip_to_check = ip_to_check
         self.interval_seconds = interval_seconds
         self.listen_address = listen_host
         self.listen_port = listen_port
+        self.persistent = persistent
 
         try:
             self.bridge = Bridge(bridge_ip)
             self.bridge.connect()
-            if conf_i_want_all_info:
+            if i_want_all_info:
                 import pprint
                 pprint.pprint(self.bridge.get_api())
             print('Connection to bridge successful')
@@ -63,8 +65,11 @@ class HueLightsStateMachine:
                 print('Current state: ', self.state)
                 if self.state >= 2:
                     self.act_on_ping()
-                if self.state == 0:  # This is to make sure when power goes down and up you remember you turned it off.
-                    self.turn_off_lights()
+                if self.persistent:
+                    if self.state == 0 or self.state == 4:
+                        self.turn_off_lights()
+                    if self.state == 1 or self.state == 3:
+                        self.turn_on_lights()
                 time.sleep(self.interval_seconds)
         except KeyboardInterrupt:
             self.web.shutdown_web_servers()
@@ -73,11 +78,13 @@ class HueLightsStateMachine:
     def enter_state0(self):  # Turning the lights OFF permanently
         if self.state == 1 or self.state >= 2:  # Only if it is currently permanently on or based on ping.
             # Turn off lights.
+            self.turn_off_lights()
             self.state = 0
 
     def enter_state1(self):  # Turning the lights ON permanently
         if self.state == 0 or self.state >= 2:  # Only if it is currently permanently off or based on ping.
             # Turn ON lights.
+            self.turn_on_lights()
             self.state = 1
 
     def enter_state2(self):  # Turning the lights on or off based on ping.
@@ -144,7 +151,8 @@ hlm = HueLightsStateMachine(
     conf_listen_host,
     conf_listen_port,
     conf_enable_api,
-    conf_i_want_all_info
+    conf_i_want_all_info,
+    conf_persistent
 )
 
 hlm.run()
