@@ -55,13 +55,17 @@ class HueLightsStateMachine:
                           3: self.enter_state3,
                           4: self.enter_state4}
         state_routines[self.state]()
-        while True:
-            print('Current state: ', self.state)
-            if self.state >= 2:
-                self.act_on_ping()
-            if self.state == 0:  # This is to make sure when power goes down and up you remember you turned it off.
-                self.turn_off_lights()
-            time.sleep(self.interval_seconds)
+        try:
+            while True:
+                print('Current state: ', self.state)
+                if self.state >= 2:
+                    self.act_on_ping()
+                if self.state == 0:  # This is to make sure when power goes down and up you remember you turned it off.
+                    self.turn_off_lights()
+                time.sleep(self.interval_seconds)
+        except KeyboardInterrupt:
+            self.web.shutdown_web_servers()
+            sys.exit()
 
     def enter_state0(self):  # Turning the lights OFF permanently
         if self.state == 1 or self.state >= 2:  # Only if it is currently permanently on or based on ping.
